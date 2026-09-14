@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import { X, Download, ExternalLink, Trash2, ChevronLeft, ChevronRight, FileText, Image as ImageIcon, Video, Music, HelpCircle } from 'lucide-react';
+import { X, Download, ExternalLink, Trash2, ChevronLeft, ChevronRight, FileText, Image as ImageIcon, Video, Music, HelpCircle, Star } from 'lucide-react';
 
-const FilePreviewModal = ({ file, isOpen, onClose, onDelete, onNext, onPrev }) => {
+const FilePreviewModal = ({ file, isOpen, onClose, onDelete, onToggleFavorite, onNext, onPrev }) => {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!isOpen) return;
@@ -139,6 +139,20 @@ const FilePreviewModal = ({ file, isOpen, onClose, onDelete, onNext, onPrev }) =
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {onToggleFavorite && (
+              <button
+                onClick={() => onToggleFavorite(file._id || file.id)}
+                className={`p-2 rounded-xl border transition cursor-pointer ${
+                  file.is_favorite
+                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                    : 'bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border-white/10'
+                }`}
+                title={file.is_favorite ? 'Unstar File' : 'Star File'}
+              >
+                <Star className={`w-4 h-4 ${file.is_favorite ? 'fill-amber-400 text-amber-400' : ''}`} />
+              </button>
+            )}
+
             <a
               href={file.file_url}
               download={file.file_name}

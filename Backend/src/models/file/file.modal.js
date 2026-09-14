@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-
 const FileModel = new mongoose.Schema({
     file_name: {
         type: String,
@@ -15,7 +14,6 @@ const FileModel = new mongoose.Schema({
     file_size: {
         type: Number,
         required: [true, "File size is required"],
-        trim: true,
     },
     user_id: {
         type: String,
@@ -27,9 +25,21 @@ const FileModel = new mongoose.Schema({
         required: [true, "File URL is required"],
         trim: true,
     },
+    is_favorite: {
+        type: Boolean,
+        default: false,
+    },
+    is_public: {
+        type: Boolean,
+        default: false,
+    },
+    share_token: {
+        type: String,
+        default: null,
+        trim: true,
+    },
 }, {
     timestamps: true
-})
-
+});
 
 export default mongoose.model("File", FileModel);

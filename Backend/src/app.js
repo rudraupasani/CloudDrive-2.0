@@ -1,27 +1,31 @@
 import express from 'express';
-import cors from 'cors'
-import registerRoutes from "./routes/auth/register.routes.js"
-import loginRoutes from "./routes/auth/login.routes.js"
-import cookieParser from "cookie-parser";
-import profileRoutes from "./routes/user/profile.routes.js"
-import fileRoutes from "./routes/file/file.routes.js"
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import envConfig from './config/env.js';
 
-const app = express()
+import registerRoutes from './routes/auth/register.routes.js';
+import loginRoutes from './routes/auth/login.routes.js';
+import profileRoutes from './routes/user/profile.routes.js';
+import fileRoutes from './routes/file/file.routes.js';
+import healthRoutes from './routes/health/health.routes.js';
 
-app.use(express.json())
-app.use(cors({
-    origin: [
-        "http://localhost:5173",  // React frontend
-        "http://localhost:3000",  // Other dev servers
-    ],
+const app = express();
+
+app.use(express.json());
+app.use(
+  cors({
+    origin: envConfig.corsOrigin,
     credentials: true,
-}))
-app.use(express.urlencoded({ extended: true }))
-app.use(cookieParser())
+  })
+);
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Base API v1 Routes
+app.use('/api/v1', healthRoutes);
 app.use('/api/v1', registerRoutes);
 app.use('/api/v1', loginRoutes);
 app.use('/api/v1', profileRoutes);
 app.use('/api/v1', fileRoutes);
 
-
-export default app;   
+export default app;

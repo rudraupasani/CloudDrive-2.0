@@ -1,6 +1,7 @@
+import crypto from 'crypto';
 import fileModal from "../../models/file/file.modal.js";
 import User from "../../models/auth/user.modal.js";
-import { redis } from "../../config/redis.js";
+import { safeRedis } from "../../config/redis.js";
 
 // Upload a new file (save metadata and update user storage)
 export const UploadFile = async (req, res) => {
@@ -49,6 +50,8 @@ export const UploadFile = async (req, res) => {
             file_size: size,
             file_url,
             user_id: userId.toString(),
+            is_favorite: false,
+            is_public: false,
         });
 
         // Update user storage usage
@@ -56,7 +59,7 @@ export const UploadFile = async (req, res) => {
         await user.save();
 
         // Invalidate user Redis cache so profile storage is updated
-        await redis.del(`user:${userId.toString()}`);
+        await safeRedis.del(`user:${userId.toString()}`);
 
         return res.status(200).json({
             success: true,
@@ -127,7 +130,7 @@ export const DeleteFile = async (req, res) => {
         }
 
         // Verify that the file belongs to the logged-in user
-        if (file.user_id !== userId.toString()) {
+        if (file.user_id?.toString() !== userId?.toString()) {
             return res.status(403).json({
                 success: false,
                 message: "Access denied. You cannot delete this file.",
@@ -146,7 +149,7 @@ export const DeleteFile = async (req, res) => {
         await fileModal.findByIdAndDelete(id);
 
         // Invalidate user Redis cache
-        await redis.del(`user:${userId.toString()}`);
+        await safeRedis.del(`user:${userId.toString()}`);
 
         return res.status(200).json({
             success: true,
@@ -160,5 +163,112 @@ export const DeleteFile = async (req, res) => {
             message: "Internal server error during file deletion",
             error: err.message
         });
+    }
+};
+
+// Toggle Favorite Status (using atomic $set update)
+export const ToggleFavorite = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user?._id || req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "Unauthorized." });
+        }
+
+        const file = await fileModal.findById(id);
+        if (!file) {
+            return res.status(404).json({ success: false, message: "File not found." });
+        }
+
+        if (file.user_id?.toString() !== userId?.toString()) {
+            return res.status(403).json({ success: false, message: "Access denied." });
+        }
+
+        const newFav = !Boolean(file.is_favorite);
+
+        const updatedFile = await fileModal.findByIdAndUpdate(
+            id,
+            { $set: { is_favorite: newFav } },
+            { new: true }
+        );
+
+        // Invalidate Redis Cache
+        await safeRedis.del(`user:${userId.toString()}`);
+
+        return res.status(200).json({
+            success: true,
+            message: newFav ? "File added to favorites" : "File removed from favorites",
+            is_favorite: updatedFile.is_favorite,
+            file: updatedFile
+        });
+    } catch (err) {
+        console.error("ToggleFavorite Error:", err);
+        return res.status(500).json({ success: false, message: "Server error", error: err.message });
+    }
+};
+
+// Generate or Enable Public Share Link
+export const GenerateShareLink = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user?._id || req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "Unauthorized." });
+        }
+
+        const file = await fileModal.findById(id);
+        if (!file) {
+            return res.status(404).json({ success: false, message: "File not found." });
+        }
+
+        if (file.user_id?.toString() !== userId?.toString()) {
+            return res.status(403).json({ success: false, message: "Access denied." });
+        }
+
+        if (!file.share_token) {
+            file.share_token = crypto.randomBytes(16).toString('hex');
+        }
+
+        file.is_public = true;
+        await file.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Share link generated successfully",
+            share_token: file.share_token,
+            is_public: file.is_public,
+            file
+        });
+    } catch (err) {
+        console.error("GenerateShareLink Error:", err);
+        return res.status(500).json({ success: false, message: "Server error", error: err.message });
+    }
+};
+
+// Fetch Shared File Info Publicly
+export const GetSharedFile = async (req, res) => {
+    try {
+        const { shareToken } = req.params;
+
+        const file = await fileModal.findOne({ share_token: shareToken, is_public: true });
+        if (!file) {
+            return res.status(404).json({ success: false, message: "Shared file not found or access revoked." });
+        }
+
+        return res.status(200).json({
+            success: true,
+            file: {
+                file_name: file.file_name,
+                file_type: file.file_type,
+                file_size: file.file_size,
+                file_url: file.file_url,
+                createdAt: file.createdAt
+            }
+        });
+    } catch (err) {
+        console.error("GetSharedFile Error:", err);
+        return res.status(500).json({ success: false, message: "Server error", error: err.message });
     }
 };

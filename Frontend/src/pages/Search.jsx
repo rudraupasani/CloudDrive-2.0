@@ -5,9 +5,9 @@ import DriveLogo from '../components/DriveLogo';
 import {
   Search as SearchIcon, X, ArrowLeft, FileText, Image as ImageIcon,
   Folder, MoreVertical, HardDrive, Clock, Calendar, ChevronRight, Grid, List,
-  Share2, Download, Trash2, SlidersHorizontal, Check, Loader2, ExternalLink
+  Share2, Download, Trash2, SlidersHorizontal, Check, Loader2, ExternalLink, Star
 } from 'lucide-react';
-import { getUserFiles, deleteUserFile, getUserProfile } from '../services/api';
+import { getUserFiles, deleteUserFile, getUserProfile, toggleFavoriteFile } from '../services/api';
 import FilePreviewModal from '../components/FilePreviewModal';
 
 const SearchPage = () => {
@@ -78,6 +78,17 @@ const SearchPage = () => {
   const handleClearQuery = () => {
     setQuery('');
     setSearchParams({});
+  };
+
+  const handleToggleFavorite = async (fileId) => {
+    try {
+      const res = await toggleFavoriteFile(fileId);
+      if (res.success) {
+        setFiles(prev => prev.map(f => f._id === fileId ? { ...f, is_favorite: res.is_favorite } : f));
+      }
+    } catch (err) {
+      console.error('Failed to toggle favorite in search:', err);
+    }
   };
 
   const handleDeleteFile = async (fileId, fileName) => {
@@ -424,9 +435,25 @@ const SearchPage = () => {
                       </div>
                       
                       <div 
-                        className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity"
+                        className={`flex items-center gap-1 transition-opacity ${
+                          file.is_favorite ? 'opacity-100' : 'opacity-100 sm:opacity-0 group-hover:opacity-100'
+                        }`}
                         onClick={(e) => e.stopPropagation()}
                       >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleFavorite(file._id);
+                          }}
+                          className={`p-1.5 rounded-lg transition ${
+                            file.is_favorite
+                              ? 'text-amber-500 bg-amber-50'
+                              : 'text-slate-400 hover:text-amber-500 hover:bg-slate-100'
+                          }`}
+                          title={file.is_favorite ? 'Unstar file' : 'Star file'}
+                        >
+                          <Star className={`w-3.5 h-3.5 ${file.is_favorite ? 'fill-amber-500 text-amber-500' : ''}`} />
+                        </button>
                         <a
                           href={file.file_url}
                           target="_blank"
