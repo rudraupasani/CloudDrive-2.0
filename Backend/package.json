@@ -1,0 +1,26 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx nodemon index.js"
+  },
+  "keywords": [],
+  "author": "Rudra Upasani",
+  "license": "ISC",
+  "type": "module",
+  "engines": {
+    "node": "20.11.1"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.38.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "modules": "^0.4.0",
+    "mongoose": "^9.9.2",
+    "node": "^26.7.0"
+  }
+}
