@@ -1,2 +1,27 @@
+# Environment files — NEVER commit these
 .env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.staging
+
+# Dependencies
 node_modules
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
