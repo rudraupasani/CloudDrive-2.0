@@ -77,7 +77,7 @@ export const UploadFile = async (req, res) => {
     }
 };
 
-// Retrieve all files uploaded by the logged-in user
+// Retrieve all files uploaded by the logged-in user with Redis-backed Starred status
 export const GetFiles = async (req, res) => {
     try {
         const userId = req.user?._id || req.user?.id;
@@ -89,12 +89,24 @@ export const GetFiles = async (req, res) => {
             });
         }
 
-        const files = await fileModal.find({ user_id: userId.toString() }).sort({ createdAt: -1 });
+        // Fetch files from MongoDB and starred file IDs from Redis in parallel
+        const [files, starredList] = await Promise.all([
+            fileModal.find({ user_id: userId.toString() }).sort({ createdAt: -1 }).lean(),
+            safeRedis.smembers(`user:${userId.toString()}:starred`)
+        ]);
+
+        const starredSet = new Set((starredList || []).map(id => id.toString()));
+
+        // Decorate files with is_favorite computed strictly from Redis
+        const filesWithStarred = files.map(file => ({
+            ...file,
+            is_favorite: starredSet.has(file._id.toString())
+        }));
 
         return res.status(200).json({
             success: true,
             message: "Files retrieved successfully",
-            files
+            files: filesWithStarred
         });
     }
     catch (err) {
@@ -148,6 +160,9 @@ export const DeleteFile = async (req, res) => {
 
         await fileModal.findByIdAndDelete(id);
 
+        // Remove from Redis Starred set
+        await safeRedis.srem(`user:${userId.toString()}:starred`, id.toString());
+
         // Invalidate user Redis cache
         await safeRedis.del(`user:${userId.toString()}`);
 
@@ -166,7 +181,7 @@ export const DeleteFile = async (req, res) => {
     }
 };
 
-// Toggle Favorite Status (using atomic $set update)
+// Toggle Starred Status (Stored in Redis, NOT on MongoDB)
 export const ToggleFavorite = async (req, res) => {
     try {
         const { id } = req.params;
@@ -176,7 +191,7 @@ export const ToggleFavorite = async (req, res) => {
             return res.status(401).json({ success: false, message: "Unauthorized." });
         }
 
-        const file = await fileModal.findById(id);
+        const file = await fileModal.findById(id).lean();
         if (!file) {
             return res.status(404).json({ success: false, message: "File not found." });
         }
@@ -185,22 +200,28 @@ export const ToggleFavorite = async (req, res) => {
             return res.status(403).json({ success: false, message: "Access denied." });
         }
 
-        const newFav = !Boolean(file.is_favorite);
+        const redisKey = `user:${userId.toString()}:starred`;
+        const isCurrentlyStarred = await safeRedis.sismember(redisKey, id.toString());
 
-        const updatedFile = await fileModal.findByIdAndUpdate(
-            id,
-            { $set: { is_favorite: newFav } },
-            { new: true }
-        );
-
-        // Invalidate Redis Cache
-        await safeRedis.del(`user:${userId.toString()}`);
+        let newFav = false;
+        if (Number(isCurrentlyStarred) === 1) {
+            // Unstar: Remove file ID from Redis Set
+            await safeRedis.srem(redisKey, id.toString());
+            newFav = false;
+        } else {
+            // Star: Add file ID to Redis Set
+            await safeRedis.sadd(redisKey, id.toString());
+            newFav = true;
+        }
 
         return res.status(200).json({
             success: true,
-            message: newFav ? "File added to favorites" : "File removed from favorites",
-            is_favorite: updatedFile.is_favorite,
-            file: updatedFile
+            message: newFav ? "File starred in Redis" : "File unstarred from Redis",
+            is_favorite: newFav,
+            file: {
+                ...file,
+                is_favorite: newFav
+            }
         });
     } catch (err) {
         console.error("ToggleFavorite Error:", err);

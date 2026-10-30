@@ -42,6 +42,43 @@ export const safeRedis = {
       console.warn(`Redis DEL failed for key ${key}:`, e.message);
       return null;
     }
+  },
+  sadd: async (key, ...members) => {
+    if (!redisClient) return 0;
+    try {
+      return await redisClient.sadd(key, ...members);
+    } catch (e) {
+      console.warn(`Redis SADD failed for key ${key}:`, e.message);
+      return 0;
+    }
+  },
+  srem: async (key, ...members) => {
+    if (!redisClient) return 0;
+    try {
+      return await redisClient.srem(key, ...members);
+    } catch (e) {
+      console.warn(`Redis SREM failed for key ${key}:`, e.message);
+      return 0;
+    }
+  },
+  smembers: async (key) => {
+    if (!redisClient) return [];
+    try {
+      const res = await redisClient.smembers(key);
+      return Array.isArray(res) ? res : [];
+    } catch (e) {
+      console.warn(`Redis SMEMBERS failed for key ${key}:`, e.message);
+      return [];
+    }
+  },
+  sismember: async (key, member) => {
+    if (!redisClient) return 0;
+    try {
+      return await redisClient.sismember(key, member);
+    } catch (e) {
+      console.warn(`Redis SISMEMBER failed for key ${key}:`, e.message);
+      return 0;
+    }
   }
 };
 
