@@ -898,7 +898,7 @@ const Dashboard = () => {
                   {renderNavItem('mydrive', 'My Drive', HardDrive)}
                   {renderNavItem('shared', 'Shared with me', Users)}
                   {renderNavItem('recent', 'Recent', Clock)}
-                  {renderNavItem('starred', 'Starred (Redis)', Star)}
+                  {renderNavItem('starred', 'Starred', Star)}
                   {renderNavItem('trash', 'Trash', Trash2)}
                 </nav>
               </div>
@@ -924,9 +924,6 @@ const Dashboard = () => {
                     <>
                       <Star className="w-5 h-5 text-amber-500 fill-amber-500 shrink-0" />
                       <span>Starred</span>
-                      <span className="hidden sm:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                        Redis In-Memory
-                      </span>
                     </>
                   ) : activeTab === 'recent' ? (
                     <>
@@ -1063,7 +1060,7 @@ const Dashboard = () => {
                 { id: 'images', label: 'Photos & Images', icon: ImageIcon },
                 { id: 'pdfs', label: 'PDFs', icon: FileCode },
                 { id: 'media', label: 'Video & Audio', icon: Film },
-                { id: 'starred', label: 'Starred (Redis)', icon: Star },
+                { id: 'starred', label: 'Starred', icon: Star },
               ].map(chip => {
                 const IconCmp = chip.icon;
                 const isSelected = activeFilterChip === chip.id;

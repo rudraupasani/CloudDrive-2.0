@@ -1,81 +1,72 @@
-
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import DriveLogo from './DriveLogo';
 
-const AuthLayout = ({ children, title, subtitle }) => {
-  const location = useLocation();
-  const isLogin = location.pathname === '/login' || location.pathname === '/';
-
+const AuthLayout = ({
+  children,
+  title,
+  subtitle,
+  image = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1600&auto=format&fit=crop"
+}) => {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 bg-grid-pattern text-slate-900 p-3 sm:p-4 relative overflow-hidden font-['Plus_Jakarta_Sans']">
-
-      {/* Background Soft Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[350px] h-[350px] bg-blue-500/10 rounded-full blur-[80px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[350px] h-[350px] bg-indigo-500/10 rounded-full blur-[80px] pointer-events-none" />
-
-      {/* Auth Container */}
-      <div className="w-full max-w-md p-5 sm:p-7 bg-white rounded-xl shadow-sm border border-slate-100">
-
-        {/* Top */}
-        <div className="flex items-center justify-between mb-5">
-          <span className="text-[11px] text-slate-500 font-medium">
-            CloudDrive Web App
-          </span>
+    <div className="h-screen w-screen flex bg-white font-['Plus_Jakarta_Sans'] select-none overflow-hidden">
+      {/* ========================================================================= */}
+      {/* LEFT HALF: FULL-HEIGHT AUTH FORM CONTAINER                                */}
+      {/* ========================================================================= */}
+      <div className="w-full lg:w-1/2 h-full flex flex-col justify-between p-6 sm:p-10 lg:p-14 xl:p-16 bg-white overflow-hidden">
+        {/* Top Branding */}
+        <div className="flex items-center justify-between shrink-0">
+          <Link to="/" className="flex items-center gap-2.5 active:scale-98 transition">
+            <DriveLogo size="sm" />
+            <span className="font-bold text-xl text-slate-900 tracking-tight font-['Outfit']">
+              CloudDrive
+            </span>
+          </Link>
         </div>
 
-        {/* Header */}
-        <div className="mb-5">
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 font-['Outfit'] tracking-tight">
-            {title}
-          </h2>
+        {/* Center: Form Area */}
+        <div className="my-auto max-w-md w-full mx-auto py-2">
+          <div className="mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 font-['Outfit'] tracking-tight">
+              {title}
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">
+              {subtitle}
+            </p>
+          </div>
 
-          <p className="text-xs text-slate-500 mt-1">
-            {subtitle}
-          </p>
-        </div>
-
-        {/* Form */}
-        <div>
+          {/* Form Content */}
           {children}
         </div>
 
-        {/* Footer */}
-        <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] text-slate-500">
-          <p>
-            © {new Date().getFullYear()} CloudDrive Inc.
-          </p>
-
-          <div className="flex items-center gap-3">
-            <a
-              href="#privacy"
-              onClick={(e) => e.preventDefault()}
-              className="hover:text-slate-900 transition"
-            >
+        {/* Bottom Legal */}
+        <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400 shrink-0">
+          <span>© {new Date().getFullYear()} CloudDrive Inc.</span>
+          <div className="flex items-center gap-4">
+            <a href="#privacy" onClick={(e) => e.preventDefault()} className="hover:text-slate-600 transition">
               Privacy
             </a>
-
-            <a
-              href="#terms"
-              onClick={(e) => e.preventDefault()}
-              className="hover:text-slate-900 transition"
-            >
+            <a href="#terms" onClick={(e) => e.preventDefault()} className="hover:text-slate-600 transition">
               Terms
-            </a>
-
-            <a
-              href="#support"
-              onClick={(e) => e.preventDefault()}
-              className="hover:text-slate-900 transition"
-            >
-              Support
             </a>
           </div>
         </div>
+      </div>
 
+      {/* ========================================================================= */}
+      {/* RIGHT HALF: FULL-HEIGHT CURATED ONLINE IMAGE                              */}
+      {/* ========================================================================= */}
+      <div className="hidden lg:block lg:w-1/2 h-full relative overflow-hidden bg-slate-950">
+        <img
+          src={image}
+          alt="Cloud Workspace"
+          className="absolute inset-0 w-full h-full object-cover filter brightness-95"
+          loading="eager"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-slate-950/20" />
       </div>
     </div>
   );
 };
 
 export default AuthLayout;
-

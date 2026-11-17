@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Login from '../pages/Login';
+import Login from '../pages/login';
 import Register from '../pages/Register';
 import Dashboard from '../pages/Dashboard';
 import Profile from '../pages/Profile';
@@ -34,7 +34,7 @@ const AppRoutes = () => {
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      
+
       {/* Public Share File Routes */}
       <Route path="/share/:shareToken" element={<SharedFile />} />
       <Route path="/files/shared/:shareToken" element={<SharedFile />} />
@@ -64,7 +64,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-      
+
       {/* Catch-all fallback */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
