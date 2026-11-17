@@ -5,11 +5,13 @@ import Register from '../pages/Register';
 import Dashboard from '../pages/Dashboard';
 import Profile from '../pages/Profile';
 import SearchPage from '../pages/Search';
+import SharedFile from '../pages/SharedFile';
 import { useAuth } from '../context/AuthContext';
 
 const ProtectedRoute = ({ children }) => {
   const { user, checkingAuth } = useAuth();
-  const userId = localStorage.getItem('cloud_drive_user')
+  const userId = localStorage.getItem('cloud_drive_user');
+  const token = localStorage.getItem('cloud_drive_token');
 
   if (checkingAuth) {
     return (
@@ -19,7 +21,7 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  if (!userId) {
+  if (!userId && !token && !user) {
     return <Navigate to="/login" replace />;
   }
 
@@ -29,9 +31,15 @@ const ProtectedRoute = ({ children }) => {
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      
+      {/* Public Share File Routes */}
+      <Route path="/share/:shareToken" element={<SharedFile />} />
+      <Route path="/files/shared/:shareToken" element={<SharedFile />} />
+
+      {/* Protected Routes */}
       <Route
         path="/dashboard"
         element={
@@ -56,7 +64,9 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      
+      {/* Catch-all fallback */}
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 };

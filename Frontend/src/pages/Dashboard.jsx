@@ -221,9 +221,13 @@ const Dashboard = () => {
   const handleShareFile = async (file) => {
     try {
       const res = await generateShareLink(file._id || file.id);
-      if (res.success) {
-        const shareUrl = `${window.location.origin}/#/share/${res.share_token}`;
+      if (res.success && res.share_token) {
+        const shareUrl = `${window.location.origin}/share/${res.share_token}`;
         await navigator.clipboard.writeText(shareUrl);
+        setCopiedId(file._id || file.id);
+        setTimeout(() => setCopiedId(null), 2500);
+      } else {
+        await navigator.clipboard.writeText(file.file_url);
         setCopiedId(file._id || file.id);
         setTimeout(() => setCopiedId(null), 2500);
       }

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { loginUser, registerUser, getUserProfile } from '../services/api';
+import { loginUser, registerUser, getUserProfile, logoutUser } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -75,9 +75,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const handleLogout = () => {
-    updateUserData(null);
-    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch {
+      // ignore
+    } finally {
+      updateUserData(null);
+      localStorage.removeItem('cloud_drive_token');
+      document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    }
   };
 
   return (

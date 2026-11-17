@@ -56,13 +56,8 @@ async function loginController(req, res) {
         // Set authentication cookie
         res.cookie("token", token, {
             httpOnly: true,
-
-            // Local development: false
-            // Production with HTTPS: true
-            secure: process.env.NODE_ENV === "production",
-
-            sameSite: "lax",
-
+            secure: true, // Always true — Render always serves HTTPS
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // "none" required for cross-origin cookies
             maxAge: 10 * 24 * 60 * 60 * 1000,
         });
 
@@ -70,11 +65,11 @@ async function loginController(req, res) {
         user.lastLogin = new Date();
         await user.save();
 
-        // Response
+        // Response — also return token in body for cross-origin localStorage fallback
         return res.status(200).json({
             success: true,
             message: "User logged in successfully",
-
+            token, // Frontend stores this if cookies don't work cross-origin
             user: {
                 id: user._id,
                 name: user.name,

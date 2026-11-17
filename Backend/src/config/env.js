@@ -27,7 +27,9 @@ export default {
   mongoUri: process.env.MONGODB_URI,
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  corsOrigin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:5173', 'http://localhost:3000'],
+  corsOrigin: process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+    : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5174'],
   upstashUrl: process.env.UPSTASH_REDIS_REST_URL,
   upstashToken: process.env.UPSTASH_REDIS_REST_TOKEN,
 };

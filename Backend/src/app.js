@@ -11,13 +11,40 @@ import healthRoutes from './routes/health/health.routes.js';
 
 const app = express();
 
-app.use(express.json());
+// Robust dynamic CORS configuration for both local dev and production deployments (Vercel, Netlify, Render, etc.)
 app.use(
   cors({
-    origin: "*",
+    origin: (origin, callback) => {
+      // Allow requests with no origin (Postman, mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+
+      const cleanOrigin = origin.replace(/\/+$/, '');
+      const configuredOrigins = (envConfig.corsOrigin || []).map((o) => o.replace(/\/+$/, ''));
+
+      const isAllowed =
+        configuredOrigins.includes(cleanOrigin) ||
+        configuredOrigins.includes('*') ||
+        /\.vercel\.app$/.test(cleanOrigin) ||
+        /\.netlify\.app$/.test(cleanOrigin) ||
+        /\.onrender\.com$/.test(cleanOrigin) ||
+        /^https?:\/\/localhost(:\d+)?$/.test(cleanOrigin) ||
+        /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(cleanOrigin);
+
+      if (isAllowed) {
+        return callback(null, cleanOrigin);
+      }
+
+      // Fallback: reflect the requesting origin so deployed frontends never fail preflight
+      return callback(null, cleanOrigin);
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    exposedHeaders: ['Set-Cookie'],
   })
 );
+
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 

@@ -3,7 +3,16 @@ import User from "../../models/auth/user.modal.js";
 
 const authMiddleware = async (req, res, next) => {
     try {
-        const token = req.cookies?.token;
+        // 1. Try cookie first (works for same-origin / local dev)
+        let token = req.cookies?.token;
+
+        // 2. Fallback to Authorization header (works for cross-origin deployed environments)
+        if (!token) {
+            const authHeader = req.headers?.authorization;
+            if (authHeader && authHeader.startsWith("Bearer ")) {
+                token = authHeader.split(" ")[1];
+            }
+        }
 
         if (!token) {
             return res.status(401).json({
