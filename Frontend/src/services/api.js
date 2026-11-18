@@ -79,7 +79,7 @@ export const registerUser = async (userData) => {
 
 export const logoutUser = async () => {
   try {
-    await api.post('/auth/logout').catch(() => {});
+    await api.post('/auth/logout').catch(() => { });
   } finally {
     localStorage.removeItem('cloud_drive_token');
     localStorage.removeItem('cloud_drive_user');
